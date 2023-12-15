@@ -30,7 +30,10 @@ class NoteListFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
 
         // Initialize your adapter
-        adapter = NoteListAdapter(emptyList()) // Start with an empty list
+        adapter = NoteListAdapter(requireFragmentManager()) { note ->
+            viewModel.deleteNote(note)
+        }
+
 
         // Set the adapter to the RecyclerView
         recyclerView.adapter = adapter

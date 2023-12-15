@@ -3,11 +3,13 @@ package com.example.project_six
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import kotlinx.coroutines.launch
 
 class NoteViewModel : ViewModel() {
     val noteTitle = MutableLiveData<String>()
     val noteDescription = MutableLiveData<String>()
+    val isEditMode = MutableLiveData<Boolean>()
 
     // Inject the repository into the ViewModel
     private val repository = NoteRepository(TaskDatabase.getInstance().taskDao)
@@ -19,11 +21,19 @@ class NoteViewModel : ViewModel() {
 
         if (title != null && description != null) {
             // Create or update a note
-            val note = Note(title = title, description = description)
+            val note = if (isEditMode.value == true) {
+                Note(title = title, description = description, id = 0) // Assuming 0 for the new note
+            } else {
+                Note(title = title, description = description)
+            }
 
             // Call the repository to save or update the note in the database
             viewModelScope.launch {
-                repository.update(note)
+                if (isEditMode.value == true) {
+                    repository.update(note)
+                } else {
+                    repository.insert(note)
+                }
                 navigateBackToMainActivity()
             }
         }
@@ -32,15 +42,16 @@ class NoteViewModel : ViewModel() {
     fun deleteNote() {
         // Call the repository to delete the note from the database
         viewModelScope.launch {
-            repository.delete(Note(
-                title = noteTitle.value!!,
-                description = noteDescription.value!!
-            ))
+            val title = noteTitle.value ?: ""
+            val description = noteDescription.value ?: ""
+            repository.delete(Note(title = title, description = description))
             navigateBackToMainActivity()
         }
     }
 
     private fun navigateBackToMainActivity() {
-        // Navigate back to the MainActivity
+        viewModelScope.launch {
+            findNavController().popBackStack()
+        }
     }
 }

@@ -1,17 +1,17 @@
 package com.example.project_six
 
-import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.observe
+import androidx.navigation.fragment.findNavController
 import com.example.project_six.databinding.FragmentNoteBinding
 
 class NoteFragment : Fragment() {
 
-    // Create the ViewModel using viewModels() delegate
     private val viewModel: NoteViewModel by viewModels()
     private lateinit var binding: FragmentNoteBinding
 
@@ -19,7 +19,7 @@ class NoteFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_note, container, false)
+        binding = FragmentNoteBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
 
@@ -33,8 +33,9 @@ class NoteFragment : Fragment() {
             val note = repository.getNoteById(noteId)
 
             // Update the ViewModel with the retrieved note data
-            viewModel.noteTitle.value = note.title
-            viewModel.noteDescription.value = note.description
+            viewModel.noteTitle.postValue(note.title)
+            viewModel.noteDescription.postValue(note.description)
+            viewModel.isEditMode.postValue(true)
         }
 
         binding.saveButton.setOnClickListener {
